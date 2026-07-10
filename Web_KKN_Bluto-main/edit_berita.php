@@ -1,0 +1,245 @@
+<?php
+session_start();
+require_once 'config/database.php';
+
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    header("Location: login.php");
+    exit;
+}
+
+$error_msg = '';
+
+$id_berita = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($id_berita <= 0) {
+    header("Location: admin.php");
+    exit;
+}
+
+try {
+    $stmt = $koneksi->prepare("SELECT * FROM berita WHERE id_berita = :id LIMIT 1");
+    $stmt->execute([':id' => $id_berita]);
+    $berita = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$berita) {
+        header("Location: admin.php");
+        exit;
+    }
+} catch (PDOException $e) {
+    die("Error database: " . $e->getMessage());
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $judul = trim($_POST['judul']);
+    $id_kategori = (int)$_POST['id_kategori'];
+    $isi = trim($_POST['isi']);
+    $gambar_cover = $berita['gambar_cover'] ?? '';
+
+    if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] === UPLOAD_ERR_OK) {
+        $allowedExt = ['jpg', 'jpeg', 'png', 'webp'];
+        $fileName = basename($_FILES['gambar']['name']);
+        $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $maxSize = 2 * 1024 * 1024;
+
+        if (!in_array($fileExt, $allowedExt, true)) {
+            $error_msg = 'Format gambar tidak didukung. Gunakan JPG, PNG, atau WEBP.';
+        } elseif ($_FILES['gambar']['size'] > $maxSize) {
+            $error_msg = 'Ukuran gambar terlalu besar. Maksimal 2 MB.';
+        } else {
+            $uploadDir = __DIR__ . '/assets/img/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            $newFileName = time() . '_' . uniqid() . '.' . $fileExt;
+            $targetPath = $uploadDir . $newFileName;
+
+            if (move_uploaded_file($_FILES['gambar']['tmp_name'], $targetPath)) {
+                $gambar_cover = $newFileName;
+            } else {
+                $error_msg = 'Gagal mengunggah gambar.';
+            }
+        }
+    } elseif (isset($_FILES['gambar']) && $_FILES['gambar']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $error_msg = 'Terjadi kesalahan saat mengunggah gambar.';
+    }
+
+    $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $judul)));
+
+    if ($judul !== '' && $isi !== '' && $id_kategori > 0 && $error_msg === '') {
+        try {
+            $query = "UPDATE berita 
+                      SET id_kategori = :kategori, judul = :judul, slug = :slug, isi = :isi, gambar_cover = :gambar_cover 
+                      WHERE id_berita = :id";
+            $stmtUpdate = $koneksi->prepare($query);
+            $stmtUpdate->execute([
+                ':kategori' => $id_kategori,
+                ':judul' => $judul,
+                ':slug' => $slug,
+                ':isi' => $isi,
+                ':gambar_cover' => $gambar_cover,
+                ':id' => $id_berita
+            ]);
+
+            
+            header("Location: admin.php");
+            exit;
+        } catch (PDOException $e) {
+            $error_msg = "Gagal menyimpan perubahan: " . $e->getMessage();
+        }
+    } else {
+        $error_msg = "Harap isi semua kolom formulir dengan benar!";
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Berita - Admin Desa</title>
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --navy-dark: #0f172a;
+            --navy-medium: #1e293b;
+            --emerald-primary: #10b981;
+            --emerald-hover: #059669;
+            --bg-light-gray: #f8fafc;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-light-gray);
+            color: #1e293b;
+        }
+
+        .navbar-admin {
+            background-color: var(--navy-dark);
+            border-bottom: 3px solid var(--emerald-primary);
+        }
+
+        .form-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+        }
+
+        .form-control-custom {
+            border: 1px solid #cbd5e1;
+            padding: 12px 16px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+        .form-control-custom:focus {
+            border-color: var(--emerald-primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+        }
+        
+        .btn-emerald {
+            background-color: var(--emerald-primary);
+            color: white;
+            font-weight: 600;
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: none;
+            transition: all 0.2s ease;
+        }
+        .btn-emerald:hover {
+            background-color: var(--emerald-hover);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+    </style>
+</head>
+<body class="pb-5">
+
+    
+    <nav class="navbar navbar-dark navbar-admin py-3 shadow-sm mb-4">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1 fw-bold d-flex align-items-center">
+                <i class="bi bi-pencil-square text-success me-2"></i>Edit Berita Desa
+            </span>
+            <a href="admin.php" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Batal & Kembali
+            </a>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 800px;">
+        
+        
+        <?php if($error_msg): ?>
+            <div class="alert alert-danger border-0 shadow-sm rounded-3 py-3 px-4 mb-4">
+                <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i><?= $error_msg ?>
+            </div>
+        <?php endif; ?>
+
+        
+        <div class="card form-card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-body p-4 p-md-5">
+                
+                <form action="edit_berita.php?id=<?= $id_berita ?>" method="POST" enctype="multipart/form-data">
+                    
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted mb-1.5">Judul Berita</label>
+                        <input type="text" name="judul" class="form-control form-control-custom" 
+                               value="<?= htmlspecialchars($berita['judul']) ?>" placeholder="Masukkan judul berita yang menarik" required autofocus>
+                    </div>
+                    
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted mb-1.5">Kategori Berita</label>
+                        <select name="id_kategori" class="form-select form-control-custom" required>
+                            <option value="" disabled>-- Pilih Kategori --</option>
+                            <option value="1" <?= ($berita['id_kategori'] == 1) ? 'selected' : ''; ?>>Pengumuman</option>
+                            <option value="2" <?= ($berita['id_kategori'] == 2) ? 'selected' : ''; ?>>Kegiatan KKN</option>
+                        </select>
+                    </div>
+                    
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted mb-1.5">Gambar Cover (opsional)</label>
+                        <input type="file" name="gambar" class="form-control form-control-custom" accept="image/*">
+                        <div class="form-text text-muted small mt-1.5">Unggah gambar baru untuk mengganti cover. Maksimal 2 MB.</div>
+                        <?php if (!empty($berita['gambar_cover'])): ?>
+                            <div class="mt-2">
+                                <small class="text-muted">Cover saat ini:</small><br>
+                                <img src="assets/img/<?= htmlspecialchars($berita['gambar_cover']) ?>" alt="Cover berita" class="img-thumbnail mt-2" style="max-height: 120px;">
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted mb-1.5">Isi Berita</label>
+                        <textarea name="isi" class="form-control form-control-custom" rows="12" 
+                                  placeholder="Ketik isi berita lengkap di sini..." required><?= htmlspecialchars($berita['isi']) ?></textarea>
+                        <div class="form-text text-muted small mt-1.5">Gunakan tombol Enter untuk memisahkan antar paragraf.</div>
+                    </div>
+                    
+                    
+                    <button type="submit" class="btn btn-emerald w-100 py-2.5">
+                        <i class="bi bi-save-fill me-1"></i> Simpan Perubahan Berita
+                    </button>
+                    
+                </form>
+                
+            </div>
+        </div>
+        
+    </div>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
