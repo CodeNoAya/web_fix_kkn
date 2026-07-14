@@ -9,6 +9,13 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 
 $error_msg = '';
 
+try {
+    $stmtKategori = $koneksi->query("SELECT * FROM kategori_berita ORDER BY nama_kategori ASC");
+    $kategoriList = $stmtKategori->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $kategoriList = [];
+}
+
 $id_berita = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id_berita <= 0) {
     header("Location: admin.php");
@@ -30,7 +37,8 @@ try {
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $judul = trim($_POST['judul']);
-    $id_kategori = (int)$_POST['id_kategori'];
+    $id_kategori = isset($_POST['id_kategori']) ? (int)$_POST['id_kategori'] : 0;
+    $new_kategori = trim($_POST['new_kategori'] ?? '');
     $isi = trim($_POST['isi']);
     $gambar_cover = $berita['gambar_cover'] ?? '';
 
@@ -64,6 +72,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $judul)));
+
+    if ($new_kategori !== '') {
+        try {
+            $stmtExisting = $koneksi->prepare("SELECT id_kategori FROM kategori_berita WHERE LOWER(nama_kategori) = LOWER(:nama) LIMIT 1");
+            $stmtExisting->execute([':nama' => $new_kategori]);
+            $existing = $stmtExisting->fetch(PDO::FETCH_ASSOC);
+            if ($existing) {
+                $id_kategori = $existing['id_kategori'];
+            } else {
+                $stmtInsertKat = $koneksi->prepare("INSERT INTO kategori_berita (nama_kategori) VALUES (:nama)");
+                $stmtInsertKat->execute([':nama' => $new_kategori]);
+                $id_kategori = $koneksi->lastInsertId();
+            }
+        } catch (PDOException $e) {
+            $error_msg = 'Gagal menyimpan kategori baru: ' . $e->getMessage();
+        }
+    }
 
     if ($judul !== '' && $isi !== '' && $id_kategori > 0 && $error_msg === '') {
         try {
@@ -200,11 +225,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-muted mb-1.5">Kategori Berita</label>
-                        <select name="id_kategori" class="form-select form-control-custom" required>
-                            <option value="" disabled>-- Pilih Kategori --</option>
-                            <option value="1" <?= ($berita['id_kategori'] == 1) ? 'selected' : ''; ?>>Pengumuman</option>
-                            <option value="2" <?= ($berita['id_kategori'] == 2) ? 'selected' : ''; ?>>Kegiatan KKN</option>
+                        <select name="id_kategori" class="form-select form-control-custom">
+                            <option value="" selected>-- Pilih Kategori yang Ada --</option>
+                            <?php foreach ($kategoriList as $kategori): ?>
+                                <option value="<?= $kategori['id_kategori'] ?>" <?= ($berita['id_kategori'] == $kategori['id_kategori']) ? 'selected' : ''; ?>><?= htmlspecialchars($kategori['nama_kategori']) ?></option>
+                            <?php endforeach; ?>
                         </select>
+                        <div class="form-text text-muted small mt-1.5">Pilih kategori yang sudah tersedia atau tambahkan kategori baru di bawah.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted mb-1.5">Tambah Kategori Baru (opsional)</label>
+                        <input type="text" name="new_kategori" class="form-control form-control-custom" placeholder="Contoh: Agenda Desa" value="<?= htmlspecialchars($_POST['new_kategori'] ?? '') ?>">
+                        <div class="form-text text-muted small mt-1.5">Jika kategori belum ada, ketik nama baru lalu simpan perubahan beritanya.</div>
                     </div>
                     
                     

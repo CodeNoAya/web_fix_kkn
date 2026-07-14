@@ -1,7 +1,7 @@
 <?php
 require_once 'config/database.php';
 
-$query = "
+$query = <<<'SQL'
 CREATE TABLE IF NOT EXISTS admin (
     id_admin INTEGER PRIMARY KEY AUTOINCREMENT, 
     username TEXT, 
@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS profil_desa (
     nama_desa TEXT, 
     kepala_desa TEXT, 
     foto_kades TEXT, 
-    visi TEXT
+    visi TEXT,
+    misi TEXT
 );
 
 CREATE TABLE IF NOT EXISTS kategori_berita (
@@ -95,7 +96,7 @@ INSERT OR IGNORE INTO galeri (id_galeri, judul, gambar, tanggal) VALUES
 (4, 'Kegiatan Posyandu Balita & Lansia Dusun Barat', 'https://images.unsplash.com/photo-1605000797499-95a51c5269ae?auto=format&fit=crop&q=80&w=600&h=400', '5 April 2026'),
 (5, 'Pentas Seni Tari Tradisional KKN UTM', 'https://images.unsplash.com/photo-1589923188900-85dae523342b?auto=format&fit=crop&q=80&w=600&h=400', '17 Agustus 2025'),
 (6, 'Pemandangan Sawah Terasing di Pagi Hari', 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=600&h=400', 'Dokumentasi KKN');
-";
+SQL;
 
 try {
     $koneksi->exec($query);
@@ -107,4 +108,3 @@ try {
 } catch (PDOException $e) {
     echo "Gagal: " . $e->getMessage();
 }
-?>

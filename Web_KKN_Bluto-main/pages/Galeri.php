@@ -30,7 +30,7 @@ try {
                             $gambarGaleri = 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=600&h=400';
                         }
                     ?>
-                    <img src="<?= htmlspecialchars($gambarGaleri) ?>" class="card-img-top object-fit-cover" alt="<?= htmlspecialchars($g['judul']) ?>" style="height: 220px;">
+                    <img src="<?= htmlspecialchars($gambarGaleri) ?>" class="card-img-top object-fit-cover galeri-thumb" alt="<?= htmlspecialchars($g['judul']) ?>" style="height: 220px; cursor: pointer;" data-full="<?= htmlspecialchars($gambarGaleri) ?>" data-title="<?= htmlspecialchars($g['judul']) ?>">
                     <div class="card-body p-4">
                         <h6 class="fw-bold text-dark mb-2"><?= htmlspecialchars($g['judul']) ?></h6>
                         <small class="text-muted"><i class="bi bi-clock me-1"></i> <?= htmlspecialchars($g['tanggal']) ?></small>
@@ -45,3 +45,40 @@ try {
         <?php endif; ?>
     </div>
 </div>
+
+<!-- Modal preview gambar galeri -->
+<div class="modal fade" id="modalPreviewGaleri" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 overflow-hidden">
+            <div class="modal-body p-0 position-relative">
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                <img src="" id="modalPreviewImg" class="w-100" style="max-height:80vh; object-fit:contain; background:#000; display:block;">
+            </div>
+            <div class="modal-footer py-2">
+                <div class="me-auto small text-muted" id="modalPreviewTitle"></div>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+        var thumbs = document.querySelectorAll('.galeri-thumb');
+        var modalEl = document.getElementById('modalPreviewGaleri');
+        if (!modalEl) return;
+        var bsModal = new bootstrap.Modal(modalEl);
+        var modalImg = document.getElementById('modalPreviewImg');
+        var modalTitle = document.getElementById('modalPreviewTitle');
+
+        thumbs.forEach(function(t) {
+                t.addEventListener('click', function () {
+                        var src = t.getAttribute('data-full') || t.src;
+                        var title = t.getAttribute('data-title') || '';
+                        modalImg.src = src;
+                        modalTitle.textContent = title;
+                        bsModal.show();
+                });
+        });
+});
+</script>

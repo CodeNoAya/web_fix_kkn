@@ -3,8 +3,18 @@
 $alert_sukses = false;
 $layanan_pilihan = '';
 $nomor_reg = '';
+// ambil daftar jenis surat dari database
+$jenisList = [];
+try {
+    $stmtJenis = $koneksi->query("SELECT nama FROM jenis_surat ORDER BY id");
+    $jenisList = $stmtJenis->fetchAll(PDO::FETCH_COLUMN);
+} catch (PDOException $e) {
+    $jenisList = [];
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajukan_layanan'])) {
-    $jenis_surat = htmlspecialchars($_POST['jenis_surat']);
+    // tangani input jenis surat (hanya dari daftar yang tersedia)
+    $jenis_surat = isset($_POST['jenis_surat']) ? htmlspecialchars($_POST['jenis_surat']) : '';
     $nik = htmlspecialchars($_POST['nik']);
     $nama_pemohon = htmlspecialchars($_POST['nama_pemohon']);
     $no_hp = htmlspecialchars($_POST['no_hp']);
@@ -147,12 +157,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajukan_layanan'])) {
                         
                         <div class="mb-3">
                             <label class="form-label small fw-semibold">Pilih Jenis Surat Keterangan</label>
-                            <select name="jenis_surat" class="form-select rounded-3" required>
-                                <option value="" disabled selected>-- Pilih Surat Keterangan --</option>
-                                <option value="Surat Keterangan Usaha (SKU)">Surat Keterangan Usaha (SKU)</option>
-                                <option value="Surat Keterangan Tidak Mampu (SKTM)">Surat Keterangan Tidak Mampu (SKTM)</option>
-                                <option value="Surat Keterangan Domisili (SKD)">Surat Keterangan Domisili (SKD)</option>
-                            </select>
+                                <select name="jenis_surat" class="form-select rounded-3" required>
+                                    <option value="" disabled selected>-- Pilih Surat Keterangan --</option>
+                                    <?php foreach ($jenisList as $j): ?>
+                                        <option value="<?= htmlspecialchars($j) ?>" <?= ($layanan_pilihan === $j) ? 'selected' : '' ?>><?= htmlspecialchars($j) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                         </div>
                         
                         <div class="mb-3">
@@ -184,3 +194,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajukan_layanan'])) {
         </div>
     </div>
 </div>
+
+

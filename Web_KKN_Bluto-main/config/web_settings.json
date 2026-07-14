@@ -1,18 +1,18 @@
 {
-  "statistik": {
-    "total_penduduk": 4321,
-    "laki_laki": 2204,
-    "perempuan": 2117
-  },
-  "apbdes": {
-    "target_pendapatan": "1,25 Miliar",
-    "realisasi_pendapatan": 92,
-    "target_belanja": "1,18 Miliar",
-    "realisasi_belanja": 88
-  },
-  "kontak": {
-    "alamat": "Jl. Raya Bluto, Kec. Bluto, Kab. Sumenep, Jawa Timur, 69466",
-    "email": "pemdes@bluto.desa.id",
-    "telepon": "081234567890"
-  }
+    "statistik": {
+        "total_penduduk": 2460,
+        "laki_laki": 1208,
+        "perempuan": 1252
+    },
+    "apbdes": {
+        "target_pendapatan": "",
+        "realisasi_pendapatan": 0,
+        "target_belanja": "",
+        "realisasi_belanja": 0
+    },
+    "kontak": {
+        "alamat": "Jl. Raya Bluto, Kec. Bluto, Kab. Sumenep, Jawa Timur, 69466",
+        "email": "pemdes@bluto.desa.id",
+        "telepon": "081234567890"
+    }
 }

@@ -29,21 +29,115 @@ try {
     $strukturList = [];
 }
 
+// --- Kelola jenis_surat (hanya untuk admin) ---
+try {
+    $koneksi->exec("CREATE TABLE IF NOT EXISTS jenis_surat (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nama TEXT UNIQUE
+    )");
+} catch (PDOException $e) {
+    // abaikan
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_jenis_surat'])) {
+    $nama_baru = trim($_POST['nama_jenis'] ?? '');
+    if ($nama_baru !== '') {
+        try {
+            $stmtInsJenis = $koneksi->prepare("INSERT OR IGNORE INTO jenis_surat (nama) VALUES (:nama)");
+            $stmtInsJenis->execute([':nama' => $nama_baru]);
+            $success_msg = 'Jenis surat baru berhasil ditambahkan.';
+        } catch (PDOException $e) {
+            $error_msg = 'Gagal menambahkan jenis surat: ' . $e->getMessage();
+        }
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['hapus_jenis_surat'])) {
+    $id_hapus = (int)($_POST['id_jenis'] ?? 0);
+    if ($id_hapus > 0) {
+        try {
+            $stmtDelJenis = $koneksi->prepare("DELETE FROM jenis_surat WHERE id = :id");
+            $stmtDelJenis->execute([':id' => $id_hapus]);
+            $success_msg = 'Jenis surat berhasil dihapus.';
+        } catch (PDOException $e) {
+            $error_msg = 'Gagal menghapus jenis surat: ' . $e->getMessage();
+        }
+    }
+}
+
+try {
+    $stmtJenisAdmin = $koneksi->query("SELECT id, nama FROM jenis_surat ORDER BY id ASC");
+    $jenisSuratList = $stmtJenisAdmin->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $jenisSuratList = [];
+}
+// --- end jenis_surat ---
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profil'])) {
     $nama_desa = trim($_POST['nama_desa']);
     $kepala_desa = trim($_POST['kepala_desa']);
     $visi = trim($_POST['visi']);
+    $misi = trim($_POST['misi'] ?? '');
+    $masa_jabatan = trim($_POST['masa_jabatan'] ?? '');
 
     try {
-        $stmtUpdate = $koneksi->prepare("UPDATE profil_desa SET nama_desa = :nama_desa, kepala_desa = :kepala_desa, visi = :visi WHERE id_profil = 1");
-        $stmtUpdate->execute([
-            ':nama_desa' => $nama_desa,
-            ':kepala_desa' => $kepala_desa,
-            ':visi' => $visi
-        ]);
-        $success_msg = "Profil desa berhasil diperbarui!";
+        $stmtCurrent = $koneksi->prepare("SELECT foto_kades FROM profil_desa WHERE id_profil = 1");
+        $stmtCurrent->execute();
+        $currentProfil = $stmtCurrent->fetch(PDO::FETCH_ASSOC);
+        $currentFoto = $currentProfil['foto_kades'] ?? '';
     } catch (PDOException $e) {
-        $error_msg = "Gagal memperbarui profil: " . $e->getMessage();
+        $currentFoto = '';
+    }
+
+    $foto_kades = $currentFoto;
+
+    if (isset($_FILES['foto_kades']) && $_FILES['foto_kades']['error'] === UPLOAD_ERR_OK) {
+        $allowedExt = ['jpg', 'jpeg', 'png', 'webp'];
+        $fileName = basename($_FILES['foto_kades']['name']);
+        $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $maxSize = 2 * 1024 * 1024;
+
+        if (!in_array($fileExt, $allowedExt, true)) {
+            $error_msg = 'Format foto Kepala Desa tidak didukung. Gunakan JPG, PNG, atau WEBP.';
+        } elseif ($_FILES['foto_kades']['size'] > $maxSize) {
+            $error_msg = 'Ukuran foto Kepala Desa terlalu besar. Maksimal 2 MB.';
+        } else {
+            $uploadDir = __DIR__ . '/assets/img/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            $newFileName = time() . '_' . uniqid() . '.' . $fileExt;
+            $targetPath = $uploadDir . $newFileName;
+
+            if (move_uploaded_file($_FILES['foto_kades']['tmp_name'], $targetPath)) {
+                if (!empty($currentFoto) && file_exists($uploadDir . $currentFoto)) {
+                    @unlink($uploadDir . $currentFoto);
+                }
+                $foto_kades = $newFileName;
+            } else {
+                $error_msg = 'Gagal mengunggah foto Kepala Desa.';
+            }
+        }
+    } elseif (isset($_FILES['foto_kades']) && $_FILES['foto_kades']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $error_msg = 'Terjadi kesalahan saat mengunggah foto Kepala Desa.';
+    }
+
+    if ($error_msg === '') {
+        try {
+            $stmtUpdate = $koneksi->prepare("UPDATE profil_desa SET nama_desa = :nama_desa, kepala_desa = :kepala_desa, foto_kades = :foto_kades, visi = :visi, misi = :misi, masa_jabatan = :masa_jabatan WHERE id_profil = 1");
+            $stmtUpdate->execute([
+                ':nama_desa' => $nama_desa,
+                ':kepala_desa' => $kepala_desa,
+                ':foto_kades' => $foto_kades,
+                ':visi' => $visi,
+                ':misi' => $misi,
+                ':masa_jabatan' => $masa_jabatan
+            ]);
+            $success_msg = "Profil desa berhasil diperbarui!";
+        } catch (PDOException $e) {
+            $error_msg = "Gagal memperbarui profil: " . $e->getMessage();
+        }
     }
 }
 
@@ -250,6 +344,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_status_surat'])
     }
 }
 
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['hapus_pengajuan_surat'])) {
+    $id_pengajuan = (int)($_POST['id_pengajuan'] ?? 0);
+
+    if ($id_pengajuan > 0) {
+        try {
+            $stmtDeleteSurat = $koneksi->prepare("DELETE FROM pengajuan_surat WHERE id_pengajuan = :id");
+            $stmtDeleteSurat->execute([':id' => $id_pengajuan]);
+            $success_msg = "Pengajuan surat berhasil dihapus.";
+        } catch (PDOException $e) {
+            $error_msg = "Gagal menghapus pengajuan surat: " . $e->getMessage();
+        }
+    }
+}
+
 try {
     $stmtSuratCount = $koneksi->query("SELECT COUNT(*) FROM pengajuan_surat WHERE status_pengajuan = 'Menunggu'");
     $totalSuratMenunggu = $stmtSuratCount->fetchColumn();
@@ -433,6 +541,13 @@ try {
     $totalBerita = $stmtCount->fetchColumn();
 } catch (PDOException $e) {
     $totalBerita = 0;
+}
+
+try {
+    $stmtVisitorCount = $koneksi->query("SELECT COUNT(*) FROM visitor_logs");
+    $totalVisitors = $stmtVisitorCount->fetchColumn();
+} catch (PDOException $e) {
+    $totalVisitors = 0;
 }
 
 try {
@@ -758,8 +873,8 @@ try {
                         <div class="card-body p-4 d-flex align-items-center justify-content-between">
                             <div>
                                 <h6 class="text-muted small fw-bold text-uppercase mb-1">Pengunjung Web</h6>
-                                <h2 class="fw-bold mb-0 text-primary">128</h2>
-                                <small class="text-muted">*Data simulasi</small>
+                                <h2 class="fw-bold mb-0 text-primary"><?= (int)$totalVisitors ?></h2>
+                                <small class="text-muted">Berdasarkan log kunjungan nyata</small>
                             </div>
                             <h1 class="text-primary opacity-25 mb-0"><i class="bi bi-eye"></i></h1>
                         </div>
@@ -848,7 +963,7 @@ try {
                                 <p class="text-muted small mb-0">Perbarui identitas desa, visi, dan nama kepala desa secara langsung ke halaman depan.</p>
                             </div>
                             
-                            <form action="admin.php" method="POST">
+                            <form action="admin.php" method="POST" enctype="multipart/form-data">
                                 <input type="hidden" name="update_profil" value="1">
                                 
                                 <div class="row g-3 mb-3">
@@ -861,10 +976,29 @@ try {
                                         <input type="text" name="kepala_desa" class="form-control form-control-custom" value="<?= htmlspecialchars($profil['kepala_desa']) ?>" required>
                                     </div>
                                 </div>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label-custom">Masa Jabatan Kepala Desa</label>
+                                        <input type="text" name="masa_jabatan" class="form-control form-control-custom" value="<?= htmlspecialchars($profil['masa_jabatan'] ?? '2021 - 2027') ?>" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label-custom">Foto Kepala Desa</label>
+                                        <input type="file" name="foto_kades" class="form-control form-control-custom" accept="image/*">
+                                        <?php if (!empty($profil['foto_kades'])): ?>
+                                            <img src="assets/img/<?= htmlspecialchars($profil['foto_kades']) ?>" alt="Foto Kepala Desa" class="img-thumbnail mt-2" style="max-height: 100px;">
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                                 
                                 <div class="mb-4">
                                     <label class="form-label-custom">Visi Desa</label>
                                     <textarea name="visi" class="form-control form-control-custom" rows="4" required><?= htmlspecialchars($profil['visi']) ?></textarea>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label-custom">Misi Desa</label>
+                                    <textarea name="misi" class="form-control form-control-custom" rows="6" placeholder="Pisahkan setiap poin misi dengan baris baru"><?= htmlspecialchars($profil['misi'] ?? '') ?></textarea>
+                                    <small class="text-muted">Setiap baris yang Anda tulis akan muncul sebagai poin misi di halaman profil.</small>
                                 </div>
                                 
                                 <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold py-2">
@@ -955,6 +1089,42 @@ try {
                         </div>
 
                         
+                            <div class="card border rounded-3 overflow-hidden mt-4">
+                                <div class="card-header bg-light py-3 px-3 fw-bold text-dark">
+                                    <i class="bi bi-file-earmark-text me-1 text-success"></i>Kelola Jenis Surat Keterangan
+                                </div>
+                                <div class="card-body p-3">
+                                    <p class="text-muted small mb-3">Tambahkan atau hapus jenis surat yang dapat dipilih oleh warga pada form pengajuan.</p>
+
+                                    <?php if (!empty($jenisSuratList)): ?>
+                                        <div class="list-group mb-3">
+                                            <?php foreach ($jenisSuratList as $jenis): ?>
+                                                <div class="d-flex justify-content-between align-items-center list-group-item">
+                                                    <div class="small text-dark"><?= htmlspecialchars($jenis['nama']) ?></div>
+                                                    <form action="admin.php" method="POST" onsubmit="return confirm('Hapus jenis surat ini?');">
+                                                        <input type="hidden" name="hapus_jenis_surat" value="1">
+                                                        <input type="hidden" name="id_jenis" value="<?= (int)$jenis['id'] ?>">
+                                                        <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                                                    </form>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="alert alert-light small text-muted">Belum ada jenis surat terdaftar.</div>
+                                    <?php endif; ?>
+
+                                    <form action="admin.php" method="POST" class="row g-2">
+                                        <input type="hidden" name="tambah_jenis_surat" value="1">
+                                        <div class="col-9">
+                                            <input type="text" name="nama_jenis" class="form-control form-control-sm" placeholder="Nama jenis surat baru" required>
+                                        </div>
+                                        <div class="col-3 text-end">
+                                            <button type="submit" class="btn btn-sm btn-outline-success">Tambah</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
                         <div class="tab-pane fade" id="settings-pane" role="tabpanel">
                             <div class="mb-4">
                                 <h5 class="fw-bold mb-1 text-dark"><i class="bi bi-sliders text-success me-1"></i>Kelola Statistik & Anggaran Landing Page</h5>
@@ -1065,7 +1235,7 @@ try {
                                                     <?php endif; ?>
                                                 </td>
                                                 <td class="text-center">
-                                                    <div class="d-flex gap-2 justify-content-center">
+                                                    <div class="d-flex gap-2 justify-content-center flex-wrap">
                                                         <?php if($s['status_pengajuan'] == 'Menunggu'): ?>
                                                             <form action="admin.php" method="POST" class="d-inline">
                                                                 <input type="hidden" name="update_status_surat" value="1">
@@ -1083,9 +1253,14 @@ try {
                                                                     <i class="bi bi-x-lg"></i> Tolak
                                                                 </button>
                                                             </form>
-                                                        <?php else: ?>
-                                                            <span class="text-muted small">-</span>
                                                         <?php endif; ?>
+                                                        <form action="admin.php" method="POST" class="d-inline">
+                                                            <input type="hidden" name="hapus_pengajuan_surat" value="1">
+                                                            <input type="hidden" name="id_pengajuan" value="<?= $s['id_pengajuan'] ?>">
+                                                            <button type="submit" class="btn btn-action-lg btn-outline-danger shadow-sm" onclick="return confirm('Hapus pengajuan surat ini?');">
+                                                                <i class="bi bi-trash"></i> Hapus
+                                                            </button>
+                                                        </form>
                                                     </div>
                                                 </td>
                                             </tr>

@@ -155,7 +155,7 @@ if (file_exists($settings_file)) {
             }
         }
 
-        const coordinateBluto = [-7.067341392935275, 113.78440837375253]; // Koordinat Balai Desa Bluto Sumenep
+        const coordinateBluto = [-7.106113532162065, 113.80665145030012]; // Koordinat Balai Desa Bluto (diperbarui)
         
         const mapHomeEl = document.getElementById('map-home');
         if (mapHomeEl) {

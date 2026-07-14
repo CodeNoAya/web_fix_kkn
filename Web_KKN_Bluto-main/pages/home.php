@@ -64,7 +64,7 @@ try {
     <div class="carousel-inner">
         
         <div class="carousel-item active" style="height: 380px;">
-            <div class="w-100 h-100" style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1596404987178-57448834db95?auto=format&fit=crop&q=80&w=1200&h=500') no-repeat center center; background-size: cover;"></div>
+            <div class="w-100 h-100" style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('assets/img/balaidesa.jpeg') no-repeat center bottom; background-size: cover;"></div>
             <div class="carousel-caption d-flex flex-column justify-content-center h-100 text-start px-md-5">
                 <span class="badge bg-success self-align-start mb-2 px-3 py-2 rounded-pill uppercase fw-bold" style="max-width: max-content;">Portal Resmi</span>
                 <h1 class="display-6 fw-bold text-white mb-2">Selamat Datang di <?= htmlspecialchars($profil['nama_desa']) ?></h1>

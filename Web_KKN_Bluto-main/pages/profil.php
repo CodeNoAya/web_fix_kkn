@@ -9,8 +9,13 @@ try {
 
 $nama_desa = !empty($profil['nama_desa']) ? $profil['nama_desa'] : 'Desa Bluto';
 $kepala_desa = !empty($profil['kepala_desa']) ? $profil['kepala_desa'] : 'Bapak H. Akhmad';
-$visi = !empty($profil['visi']) ? $profil['visi'] : 'Mewujudkan Desa Bluto yang Maju, Sejahtera, dan Inovatif berbasis Potensi Lokal.';
+$visi = !empty($profil['visi']) ? $profil['visi'] : 'Visi “Menuju Bluto Sebagai Desa Andalan (Aman, Damai, Aktif, Loyal dan Nyaman)”';
+$misi = !empty($profil['misi']) ? $profil['misi'] : "Meningkatkan kualitas tata kelola pemerintahan desa yang bersih, transparan, dan berorientasi pada pelayanan masyarakat secara digital.
+Mengoptimalkan potensi pertanian, kelautan, dan industri kreatif melalui pemberdayaan produk lokal (UMKM Dapur Lokal).
+Membangun sarana dan prasarana infrastruktur desa yang merata guna mempercepat akses perekonomian warga.
+Meningkatkan kerja sama pemuda, mahasiswa (KKN), tokoh masyarakat, dan pemerintah desa untuk mewujudkan inovasi desa.";
 $foto_kades = !empty($profil['foto_kades']) ? 'assets/img/'.$profil['foto_kades'] : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300&h=300';
+$masa_jabatan = !empty($profil['masa_jabatan']) ? $profil['masa_jabatan'] : '2021 - 2027';
 
 try {
     $stmtStruktur = $koneksi->query("SELECT * FROM struktur_pemerintahan ORDER BY urutan ASC, id_struktur ASC");
@@ -44,12 +49,16 @@ try {
                     
                     <div>
                         <h5 class="fw-bold text-dark mb-2">Misi</h5>
-                        <ol class="text-muted small ps-3">
-                            <li class="mb-2">Meningkatkan kualitas tata kelola pemerintahan desa yang bersih, transparan, dan berorientasi pada pelayanan masyarakat secara digital.</li>
-                            <li class="mb-2">Mengoptimalkan potensi pertanian, kelautan, dan industri kreatif melalui pemberdayaan produk lokal (UMKM Dapur Lokal).</li>
-                            <li class="mb-2">Membangun sarana dan prasarana infrastruktur desa yang merata guna mempercepat akses perekonomian warga.</li>
-                            <li class="mb-2">Meningkatkan kerja sama pemuda, mahasiswa (KKN), tokoh masyarakat, dan pemerintah desa untuk mewujudkan inovasi desa.</li>
-                        </ol>
+                        <?php $misiItems = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $misi)), static function ($line): bool { return $line !== ''; })); ?>
+                        <?php if (!empty($misiItems)): ?>
+                            <ol class="text-muted small ps-3">
+                                <?php foreach ($misiItems as $item): ?>
+                                    <li class="mb-2"><?= htmlspecialchars($item) ?></li>
+                                <?php endforeach; ?>
+                            </ol>
+                        <?php else: ?>
+                            <div class="text-muted small">Belum ada misi yang ditambahkan.</div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -59,13 +68,7 @@ try {
                 <div class="card-body p-4">
                     <h4 class="fw-bold text-success border-bottom pb-2 mb-3"><i class="bi bi-hourglass-split me-2"></i>Sejarah Desa Bluto</h4>
                     <p class="text-muted small">
-                        Desa Bluto merupakan salah satu desa yang terletak di Kecamatan Bluto, Kabupaten Sumenep, Madura, Jawa Timur. Nama "Bluto" dipercaya oleh masyarakat setempat berasal dari perpaduan kata sejarah lisan mengenai keberadaan sumber mata air purba yang menyuburkan kawasan pertanian dan perkebunan di sekeliling wilayah ini.
-                    </p>
-                    <p class="text-muted small">
-                        Sejak zaman kolonial hingga era kemerdekaan, Desa Bluto terus berkembang menjadi pusat perdagangan mikro di wilayah pesisir Sumenep selatan. Kehidupan masyarakat yang religius dan kental dengan gotong royong membuat berbagai program kemasyarakatan berjalan harmonis.
-                    </p>
-                    <p class="text-muted small">
-                        Hari ini, dengan hadirnya teknologi informasi dan kerja sama bersama mahasiswa KKN dari Universitas Trunojoyo Madura (UTM), Desa Bluto bertransformasi mengadopsi keterbukaan informasi dan digitalisasi pemasaran produk lokal guna bersaing di era modern.
+                        Desa Bluto bermula dari cerita masyarakat, dimana wilayah ini mulanya adalah daerah berbatu dengan kontur yang beragam mulai dari kecil hingga besar. Pada beberapa tempat, bahkan terdapat gua yang terbentuk dari endapan batu yang diperkirakan sudah berusia hingga ratusan tahun. Pemukim awal yang menempati wilayah ini kemudian menyebut tempat ini dengan sebutan Abulu Betoh yang dalam Bahasa Madura bermakna berbulu / terbungkus batu yang menunjukkan bahwa wilayah dipenuhi dengan batu yang sangat banyak. Seiring berjalannya waktu istilah tersebut kemudian disederhanakan menjadi “Bluto” agar mudah diucapkan dan menjadi nama desa hingga saat ini.
                     </p>
                 </div>
             </div>
@@ -81,11 +84,10 @@ try {
                 <div class="card-body p-4">
                     <img src="<?= $foto_kades ?>" class="rounded-circle img-thumbnail mb-3 object-fit-cover shadow-sm" alt="Kepala Desa" style="width: 140px; height: 140px;">
                     <h5 class="fw-bold mb-1 text-dark"><?= htmlspecialchars($kepala_desa) ?></h5>
-                    <p class="text-muted small mb-3">Masa Jabatan: 2021 - 2027</p>
+                    <p class="text-muted small mb-3">Masa Jabatan: <?= htmlspecialchars($masa_jabatan) ?></p>
                     <div class="bg-light py-2 px-3 rounded small text-start">
                         <div class="mb-1"><strong>Alamat Balai:</strong> Jl. Raya Bluto, Kec. Bluto, Kab. Sumenep</div>
-                        <div class="mb-1"><strong>Email:</strong> pemdes@bluto.desa.id</div>
-                        <div><strong>Telepon:</strong> 081234567890</div>
+                        <div><strong>Email:</strong> pemdes@bluto.desa.id</div>
                     </div>
                 </div>
             </div>
@@ -93,11 +95,11 @@ try {
             
             <div class="card border-0 shadow-sm rounded-4" id="aparatur">
                 <div class="card-body p-4">
-                    <h5 class="fw-bold text-success border-bottom pb-2 mb-3"><i class="bi bi-people me-2"></i>Struktur Pemerintahan & KKN</h5>
+                    <h5 class="fw-bold text-success border-bottom pb-2 mb-3"><i class="bi bi-people me-2"></i>Struktur Pemerintahan</h5>
                     
                     <?php if (!empty($strukturList)): ?>
                         <?php foreach ($strukturList as $item): ?>
-                            <?php $fotoStruktur = !empty($item['foto']) ? 'assets/img/' . $item['foto'] : 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=100&h=100'; ?>
+                            <?php $fotoStruktur = !empty($item['foto']) ? 'assets/img/' . $item['foto'] : 'assets/img/stickman-placeholder.svg'; ?>
                             <div class="d-flex align-items-center mb-3">
                                 <img src="<?= htmlspecialchars($fotoStruktur) ?>" class="rounded-circle object-fit-cover me-3 border" style="width: 45px; height: 45px;" alt="<?= htmlspecialchars($item['nama']) ?>">
                                 <div>

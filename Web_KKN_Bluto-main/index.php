@@ -2,7 +2,26 @@
 
 require_once 'config/database.php';
 
+$visitorIp = 'unknown';
+if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+    $visitorIp = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+} elseif (!empty($_SERVER['REMOTE_ADDR'])) {
+    $visitorIp = $_SERVER['REMOTE_ADDR'];
+}
+
 $page = isset($_GET['page']) ? $_GET['page'] : 'home';
+
+try {
+    $stmtVisitor = $koneksi->prepare("INSERT INTO visitor_logs (ip_address, user_agent, page, referer) VALUES (:ip, :ua, :page, :referer)");
+    $stmtVisitor->execute([
+        ':ip' => $visitorIp,
+        ':ua' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+        ':page' => $page,
+        ':referer' => $_SERVER['HTTP_REFERER'] ?? ''
+    ]);
+} catch (PDOException $e) {
+    // Abaikan kesalahan pelacakan pengunjung agar tidak mengganggu tampilan website.
+}
 
 include 'templates/header.php';
 
