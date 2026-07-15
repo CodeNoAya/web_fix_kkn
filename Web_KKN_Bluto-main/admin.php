@@ -366,8 +366,19 @@ try {
 }
 
 try {
-    $stmtAllSurat = $koneksi->query("SELECT * FROM pengajuan_surat ORDER BY tanggal_pengajuan DESC");
+    $stmtAllSurat = $koneksi->query("SELECT * FROM pengajuan_surat ORDER BY tanggal_pengajuan DESC, id_pengajuan DESC");
     $suratList = $stmtAllSurat->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($suratList as &$row) {
+        $row['nama_pemohon'] = trim((string)($row['nama_pemohon'] ?? ''));
+        $row['nik'] = trim((string)($row['nik'] ?? ''));
+        $row['jenis_surat'] = trim((string)($row['jenis_surat'] ?? ''));
+        $row['keperluan'] = trim((string)($row['keperluan'] ?? ''));
+        $row['status_pengajuan'] = trim((string)($row['status_pengajuan'] ?? 'Menunggu'));
+        if ($row['status_pengajuan'] === '') {
+            $row['status_pengajuan'] = 'Menunggu';
+        }
+    }
+    unset($row);
 } catch (PDOException $e) {
     $suratList = [];
 }
@@ -1257,6 +1268,7 @@ try {
                                             <th class="py-3">Keperluan / Alamat</th>
                                             <th class="py-3">Tanggal</th>
                                             <th class="py-3">Status</th>
+                                            <th class="text-center py-3" style="width: 12%;">Cetak</th>
                                             <th class="text-center py-3" style="width: 25%;">Aksi</th>
                                         </tr>
                                     </thead>
@@ -1287,25 +1299,33 @@ try {
                                                     <?php endif; ?>
                                                 </td>
                                                 <td class="text-center">
-                                                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                                                    <a href="admin_print_surat.php?id=<?= $s['id_pengajuan'] ?>" class="btn btn-action-lg btn-primary shadow-sm" target="_blank" rel="noopener noreferrer" title="Cetak surat" style="background:#2563eb;border-color:#2563eb;color:#fff; font-weight:700;">
+                                                        <i class="bi bi-printer"></i> CETAK
+                                                    </a>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="d-flex flex-column gap-2 align-items-center">
                                                         <?php if($s['status_pengajuan'] == 'Menunggu'): ?>
-                                                            <form action="admin.php" method="POST" class="d-inline">
-                                                                <input type="hidden" name="update_status_surat" value="1">
-                                                                <input type="hidden" name="id_pengajuan" value="<?= $s['id_pengajuan'] ?>">
-                                                                <input type="hidden" name="status_baru" value="Selesai">
-                                                                <button type="submit" class="btn btn-action-lg btn-success shadow-sm" onclick="return confirm('Tandai pengajuan surat ini selesai?');">
-                                                                    <i class="bi bi-check-lg"></i> Setuju
-                                                                </button>
-                                                            </form>
-                                                            <form action="admin.php" method="POST" class="d-inline">
-                                                                <input type="hidden" name="update_status_surat" value="1">
-                                                                <input type="hidden" name="id_pengajuan" value="<?= $s['id_pengajuan'] ?>">
-                                                                <input type="hidden" name="status_baru" value="Ditolak">
-                                                                <button type="submit" class="btn btn-action-lg btn-danger shadow-sm" onclick="return confirm('Tolak pengajuan surat ini?');">
-                                                                    <i class="bi bi-x-lg"></i> Tolak
-                                                                </button>
-                                                            </form>
+                                                            <div class="d-flex gap-2 flex-wrap justify-content-center">
+                                                                <form action="admin.php" method="POST" class="d-inline">
+                                                                    <input type="hidden" name="update_status_surat" value="1">
+                                                                    <input type="hidden" name="id_pengajuan" value="<?= $s['id_pengajuan'] ?>">
+                                                                    <input type="hidden" name="status_baru" value="Selesai">
+                                                                    <button type="submit" class="btn btn-action-lg btn-success shadow-sm" onclick="return confirm('Tandai pengajuan surat ini selesai?');">
+                                                                        <i class="bi bi-check-lg"></i> Setuju
+                                                                    </button>
+                                                                </form>
+                                                                <form action="admin.php" method="POST" class="d-inline">
+                                                                    <input type="hidden" name="update_status_surat" value="1">
+                                                                    <input type="hidden" name="status_baru" value="Ditolak">
+                                                                    <input type="hidden" name="id_pengajuan" value="<?= $s['id_pengajuan'] ?>">
+                                                                    <button type="submit" class="btn btn-action-lg btn-danger shadow-sm" onclick="return confirm('Tolak pengajuan surat ini?');">
+                                                                        <i class="bi bi-x-lg"></i> Tolak
+                                                                    </button>
+                                                                </form>
+                                                            </div>
                                                         <?php endif; ?>
+
                                                         <form action="admin.php" method="POST" class="d-inline">
                                                             <input type="hidden" name="hapus_pengajuan_surat" value="1">
                                                             <input type="hidden" name="id_pengajuan" value="<?= $s['id_pengajuan'] ?>">
