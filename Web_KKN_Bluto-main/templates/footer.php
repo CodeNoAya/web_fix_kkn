@@ -140,7 +140,6 @@ if (file_exists($settings_file)) {
         }
 
         const prayerTimes = {
-            'imsak': '04:08',
             'subuh': '04:18',
             'dzuhur': '11:34',
             'ashar': '14:55',

@@ -536,6 +536,27 @@ try {
     $aspirasiList = [];
 }
 
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['hapus_kategori_berita'])) {
+    $id_hapus = (int)($_POST['id_kategori'] ?? 0);
+    if ($id_hapus > 0) {
+        try {
+            $stmtCheck = $koneksi->prepare("SELECT COUNT(*) FROM berita WHERE id_kategori = :id");
+            $stmtCheck->execute([':id' => $id_hapus]);
+            $countBerita = (int)$stmtCheck->fetchColumn();
+
+            if ($countBerita > 0) {
+                $error_msg = 'Kategori masih digunakan oleh berita. Hapus atau ubah kategori berita terkait terlebih dahulu.';
+            } else {
+                $stmtDelKat = $koneksi->prepare("DELETE FROM kategori_berita WHERE id_kategori = :id");
+                $stmtDelKat->execute([':id' => $id_hapus]);
+                $success_msg = 'Kategori berita berhasil dihapus.';
+            }
+        } catch (PDOException $e) {
+            $error_msg = 'Gagal menghapus kategori berita: ' . $e->getMessage();
+        }
+    }
+}
+
 try {
     $stmtCount = $koneksi->query("SELECT COUNT(*) FROM berita");
     $totalBerita = $stmtCount->fetchColumn();
@@ -558,6 +579,13 @@ try {
     $beritaList = $stmtAll->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $beritaList = [];
+}
+
+try {
+    $stmtKategoriList = $koneksi->query("SELECT * FROM kategori_berita ORDER BY nama_kategori ASC");
+    $kategoriList = $stmtKategoriList->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $kategoriList = [];
 }
 
 try {
@@ -954,9 +982,34 @@ try {
                                     </tbody>
                                 </table>
                             </div>
+
+                            <div class="card border rounded-3 overflow-hidden mt-4">
+                                <div class="card-header bg-light py-3 px-3 fw-bold text-dark">
+                                    <i class="bi bi-tags me-1 text-success"></i>Kelola Kategori Berita
+                                </div>
+                                <div class="card-body p-3">
+                                    <p class="text-muted small mb-3">Hapus kategori berita yang tidak lagi dibutuhkan. Kategori hanya dapat dihapus jika tidak digunakan oleh berita apa pun.</p>
+
+                                    <?php if (!empty($kategoriList)): ?>
+                                        <div class="list-group mb-3">
+                                            <?php foreach ($kategoriList as $kat): ?>
+                                                <div class="d-flex justify-content-between align-items-center list-group-item">
+                                                    <div class="small text-dark"><?= htmlspecialchars($kat['nama_kategori']) ?></div>
+                                                    <form action="admin.php" method="POST" onsubmit="return confirm('Hapus kategori berita ini?');">
+                                                        <input type="hidden" name="hapus_kategori_berita" value="1">
+                                                        <input type="hidden" name="id_kategori" value="<?= (int)$kat['id_kategori'] ?>">
+                                                        <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                                                    </form>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="alert alert-light small text-muted">Belum ada kategori berita terdaftar.</div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
 
-                        
                         <div class="tab-pane fade" id="profil-pane" role="tabpanel">
                             <div class="mb-4">
                                 <h5 class="fw-bold mb-1 text-dark"><i class="bi bi-pencil-square text-success me-1"></i>Kelola Profil Instansi</h5>
@@ -1088,43 +1141,6 @@ try {
                             </div>
                         </div>
 
-                        
-                            <div class="card border rounded-3 overflow-hidden mt-4">
-                                <div class="card-header bg-light py-3 px-3 fw-bold text-dark">
-                                    <i class="bi bi-file-earmark-text me-1 text-success"></i>Kelola Jenis Surat Keterangan
-                                </div>
-                                <div class="card-body p-3">
-                                    <p class="text-muted small mb-3">Tambahkan atau hapus jenis surat yang dapat dipilih oleh warga pada form pengajuan.</p>
-
-                                    <?php if (!empty($jenisSuratList)): ?>
-                                        <div class="list-group mb-3">
-                                            <?php foreach ($jenisSuratList as $jenis): ?>
-                                                <div class="d-flex justify-content-between align-items-center list-group-item">
-                                                    <div class="small text-dark"><?= htmlspecialchars($jenis['nama']) ?></div>
-                                                    <form action="admin.php" method="POST" onsubmit="return confirm('Hapus jenis surat ini?');">
-                                                        <input type="hidden" name="hapus_jenis_surat" value="1">
-                                                        <input type="hidden" name="id_jenis" value="<?= (int)$jenis['id'] ?>">
-                                                        <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
-                                                    </form>
-                                                </div>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="alert alert-light small text-muted">Belum ada jenis surat terdaftar.</div>
-                                    <?php endif; ?>
-
-                                    <form action="admin.php" method="POST" class="row g-2">
-                                        <input type="hidden" name="tambah_jenis_surat" value="1">
-                                        <div class="col-9">
-                                            <input type="text" name="nama_jenis" class="form-control form-control-sm" placeholder="Nama jenis surat baru" required>
-                                        </div>
-                                        <div class="col-3 text-end">
-                                            <button type="submit" class="btn btn-sm btn-outline-success">Tambah</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-
                         <div class="tab-pane fade" id="settings-pane" role="tabpanel">
                             <div class="mb-4">
                                 <h5 class="fw-bold mb-1 text-dark"><i class="bi bi-sliders text-success me-1"></i>Kelola Statistik & Anggaran Landing Page</h5>
@@ -1194,7 +1210,43 @@ try {
                                 <h5 class="fw-bold mb-1 text-dark"><i class="bi bi-file-earmark-text text-success me-1"></i>Pengajuan Surat Warga</h5>
                                 <p class="text-muted small mb-0">Verifikasi dan tindak lanjuti berkas permohonan surat keterangan yang diajukan warga secara mandiri.</p>
                             </div>
-                            
+
+                            <div class="card border rounded-3 overflow-hidden mb-4">
+                                <div class="card-header bg-light py-3 px-3 fw-bold text-dark">
+                                    <i class="bi bi-file-earmark-text me-1 text-success"></i>Kelola Jenis Surat Keterangan
+                                </div>
+                                <div class="card-body p-3">
+                                    <p class="text-muted small mb-3">Tambahkan atau hapus jenis surat yang dapat dipilih oleh warga pada form pengajuan.</p>
+
+                                    <?php if (!empty($jenisSuratList)): ?>
+                                        <div class="list-group mb-3">
+                                            <?php foreach ($jenisSuratList as $jenis): ?>
+                                                <div class="d-flex justify-content-between align-items-center list-group-item">
+                                                    <div class="small text-dark"><?= htmlspecialchars($jenis['nama']) ?></div>
+                                                    <form action="admin.php" method="POST" onsubmit="return confirm('Hapus jenis surat ini?');">
+                                                        <input type="hidden" name="hapus_jenis_surat" value="1">
+                                                        <input type="hidden" name="id_jenis" value="<?= (int)$jenis['id'] ?>">
+                                                        <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                                                    </form>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="alert alert-light small text-muted">Belum ada jenis surat terdaftar.</div>
+                                    <?php endif; ?>
+
+                                    <form action="admin.php" method="POST" class="row g-2">
+                                        <input type="hidden" name="tambah_jenis_surat" value="1">
+                                        <div class="col-9">
+                                            <input type="text" name="nama_jenis" class="form-control form-control-sm" placeholder="Nama jenis surat baru" required>
+                                        </div>
+                                        <div class="col-3 text-end">
+                                            <button type="submit" class="btn btn-sm btn-outline-success">Tambah</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
                             <div class="table-responsive rounded-3 border">
                                 <table class="table table-custom align-middle mb-0">
                                     <thead>
