@@ -55,7 +55,7 @@ try {
                     if (!empty($item['gambar'])) {
                         $gambarProduk = preg_match('#^https?://#i', $item['gambar']) ? $item['gambar'] : 'assets/img/' . $item['gambar'];
                     } else {
-                        $gambarProduk = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=300';
+                        $gambarProduk = 'assets/img/stickman-placeholder.svg';
                     }
                 ?>
                 <img src="<?= htmlspecialchars($gambarProduk) ?>" class="card-img-top object-fit-cover" alt="<?= $item['nama'] ?>" style="height: 180px;">

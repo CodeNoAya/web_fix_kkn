@@ -131,7 +131,7 @@ try {
                 <div class="row g-0">
                     <div class="col-md-4">
                         <?php 
-                            $gambar = !empty($berita['gambar_cover']) ? 'assets/img/'.$berita['gambar_cover'] : 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=60';
+                            $gambar = !empty($berita['gambar_cover']) ? 'assets/img/'.$berita['gambar_cover'] : 'assets/img/stickman-placeholder.svg';
                         ?>
                         <img src="<?= $gambar ?>" class="w-100 h-100 object-fit-cover rounded-start" alt="<?= htmlspecialchars($berita['judul']) ?>" style="min-height: 180px;">
                     </div>
@@ -248,7 +248,7 @@ try {
             <div class="widget-body px-0 py-2">
                 <?php if (!empty($strukturList)): ?>
                     <?php foreach ($strukturList as $index => $item): ?>
-                        <?php $fotoStruktur = !empty($item['foto']) ? 'assets/img/' . $item['foto'] : 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=100&h=100'; ?>
+                        <?php $fotoStruktur = !empty($item['foto']) ? 'assets/img/' . $item['foto'] : 'assets/img/stickman-placeholder.svg'; ?>
                         <div class="d-flex align-items-center px-3 py-2 <?= ($index < count($strukturList) - 1) ? 'border-bottom' : '' ?>">
                             <img src="<?= htmlspecialchars($fotoStruktur) ?>" class="rounded-circle object-fit-cover me-3 border" style="width: 40px; height: 40px;" alt="<?= htmlspecialchars($item['nama']) ?>">
                             <div>

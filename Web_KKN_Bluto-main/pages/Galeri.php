@@ -27,7 +27,7 @@ try {
                         if (!empty($g['gambar'])) {
                             $gambarGaleri = preg_match('#^https?://#i', $g['gambar']) ? $g['gambar'] : 'assets/img/' . $g['gambar'];
                         } else {
-                            $gambarGaleri = 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=600&h=400';
+                            $gambarGaleri = 'assets/img/stickman-placeholder.svg';
                         }
                     ?>
                     <img src="<?= htmlspecialchars($gambarGaleri) ?>" class="card-img-top object-fit-cover galeri-thumb" alt="<?= htmlspecialchars($g['judul']) ?>" style="height: 220px; cursor: pointer;" data-full="<?= htmlspecialchars($gambarGaleri) ?>" data-title="<?= htmlspecialchars($g['judul']) ?>">

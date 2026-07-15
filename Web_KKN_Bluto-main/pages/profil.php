@@ -14,7 +14,7 @@ $misi = !empty($profil['misi']) ? $profil['misi'] : "Meningkatkan kualitas tata 
 Mengoptimalkan potensi pertanian, kelautan, dan industri kreatif melalui pemberdayaan produk lokal (UMKM Dapur Lokal).
 Membangun sarana dan prasarana infrastruktur desa yang merata guna mempercepat akses perekonomian warga.
 Meningkatkan kerja sama pemuda, mahasiswa (KKN), tokoh masyarakat, dan pemerintah desa untuk mewujudkan inovasi desa.";
-$foto_kades = !empty($profil['foto_kades']) ? 'assets/img/'.$profil['foto_kades'] : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300&h=300';
+$foto_kades = !empty($profil['foto_kades']) ? 'assets/img/'.$profil['foto_kades'] : 'assets/img/stickman-placeholder.svg';
 $masa_jabatan = !empty($profil['masa_jabatan']) ? $profil['masa_jabatan'] : '2021 - 2027';
 
 try {

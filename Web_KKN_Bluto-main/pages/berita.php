@@ -102,7 +102,7 @@ try {
                         
                         
                         <?php 
-                            $gambar = !empty($berita['gambar_cover']) ? 'assets/img/'.$berita['gambar_cover'] : 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=60';
+                            $gambar = !empty($berita['gambar_cover']) ? 'assets/img/'.$berita['gambar_cover'] : 'assets/img/stickman-placeholder.svg';
                         ?>
                         <img src="<?= $gambar ?>" class="card-img-top object-fit-cover" alt="<?= htmlspecialchars($berita['judul']) ?>" style="height: 200px;">
                         

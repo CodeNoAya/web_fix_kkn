@@ -39,7 +39,7 @@ try {
                 <article class="card border-0 shadow-sm rounded-4 overflow-hidden">
                     
                     <?php 
-                        $gambar = !empty($berita['gambar_cover']) ? 'assets/img/'.$berita['gambar_cover'] : 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80';
+                        $gambar = !empty($berita['gambar_cover']) ? 'assets/img/'.$berita['gambar_cover'] : 'assets/img/stickman-placeholder.svg';
                     ?>
                     <img src="<?= $gambar ?>" class="w-100 object-fit-cover" alt="<?= htmlspecialchars($berita['judul']) ?>" style="max-height: 400px;">
                     
@@ -88,7 +88,7 @@ try {
                                 <?php foreach ($rekomendasi as $rec): ?>
                                     <div class="d-flex align-items-start border-bottom pb-3">
                                         <?php 
-                                            $gambar_rec = !empty($rec['gambar_cover']) ? 'assets/img/'.$rec['gambar_cover'] : 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=20&w=150';
+                                            $gambar_rec = !empty($rec['gambar_cover']) ? 'assets/img/'.$rec['gambar_cover'] : 'assets/img/stickman-placeholder.svg';
                                         ?>
                                         <img src="<?= $gambar_rec ?>" class="rounded object-fit-cover me-3 border" style="width: 70px; height: 70px;" alt="<?= htmlspecialchars($rec['judul']) ?>">
                                         <div>
