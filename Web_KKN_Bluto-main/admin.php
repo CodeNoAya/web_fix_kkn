@@ -1231,14 +1231,34 @@ try {
 
                                     <?php if (!empty($jenisSuratList)): ?>
                                         <div class="list-group mb-3">
-                                            <?php foreach ($jenisSuratList as $jenis): ?>
+                                            <?php foreach ($jenisSuratList as $jenis): 
+                                                    // mapping sederhana dari label ke tipe yang dikenali oleh admin_template_surat.php
+                                                    $label = strtolower($jenis['nama']);
+                                                    $typeKey = '';
+                                                    if (strpos($label, 'usaha') !== false || stripos($label, 'sku') !== false) {
+                                                        $typeKey = 'sku';
+                                                    } elseif (strpos($label, 'tidak mampu') !== false || stripos($label, 'sktm') !== false) {
+                                                        $typeKey = 'sktm';
+                                                    } elseif (strpos($label, 'domisili') !== false || stripos($label, 'skd') !== false) {
+                                                        $typeKey = 'domisili';
+                                                    } elseif (strpos($label, 'nikah') !== false) {
+                                                        $typeKey = 'nikah';
+                                                    }
+                                            ?>
                                                 <div class="d-flex justify-content-between align-items-center list-group-item">
                                                     <div class="small text-dark"><?= htmlspecialchars($jenis['nama']) ?></div>
-                                                    <form action="admin.php" method="POST" onsubmit="return confirm('Hapus jenis surat ini?');">
-                                                        <input type="hidden" name="hapus_jenis_surat" value="1">
-                                                        <input type="hidden" name="id_jenis" value="<?= (int)$jenis['id'] ?>">
-                                                        <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
-                                                    </form>
+                                                    <div class="d-flex gap-2">
+                                                        <?php if (!empty($typeKey)): ?>
+                                                            <a href="admin_template_surat.php?action=edit&type=<?= urlencode($typeKey) ?>" class="btn btn-sm btn-outline-primary">Edit Format</a>
+                                                        <?php else: ?>
+                                                            <a href="admin_template_surat.php?action=edit&type=<?= urlencode($jenis['id']) ?>" class="btn btn-sm btn-outline-primary">Edit Format</a>
+                                                        <?php endif; ?>
+                                                        <form action="admin.php" method="POST" onsubmit="return confirm('Hapus jenis surat ini?');">
+                                                            <input type="hidden" name="hapus_jenis_surat" value="1">
+                                                            <input type="hidden" name="id_jenis" value="<?= (int)$jenis['id'] ?>">
+                                                            <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                                                        </form>
+                                                    </div>
                                                 </div>
                                             <?php endforeach; ?>
                                         </div>

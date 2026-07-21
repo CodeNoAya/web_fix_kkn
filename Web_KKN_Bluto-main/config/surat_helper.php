@@ -12,6 +12,7 @@ function generateSuratDraft($type, $data) {
     $kepala_desa = 'Kepala Desa';
 
     // Coba ambil dari database profil_desa jika tersedia
+    $custom_template = null;
     $dbFile = __DIR__ . '/database.php';
     if (file_exists($dbFile)) {
         try {
@@ -39,6 +40,19 @@ function generateSuratDraft($type, $data) {
                             }
                         }
                     }
+
+                    // Coba cari custom template untuk tipe surat ini
+                    try {
+                        $stmt = $koneksi->prepare("SELECT template_html FROM template_surat WHERE tipe_surat = ?");
+                        $stmt->execute([$type]);
+                        $template_row = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if ($template_row) {
+                            $custom_template = $template_row['template_html'];
+                        }
+                    } catch (Exception $e) {
+                        // Ignore if template table doesn't exist yet
+                    }
+
                 } catch (Exception $e) {
                     // ignore DB read errors, pakai default
                 }
@@ -46,6 +60,30 @@ function generateSuratDraft($type, $data) {
         } catch (Exception $e) {
             // ignore
         }
+    }
+
+    // Siapkan variabel untuk replacement
+    $nama_usaha = htmlspecialchars($data['nama_usaha'] ?? '-');
+    $lokasi_usaha = nl2br(htmlspecialchars($data['lokasi_usaha'] ?? $data['alamat'] ?? '-'));
+    $keterangan = nl2br(htmlspecialchars($data['keterangan'] ?? 'Tidak mampu secara ekonomi'));
+    $status_tinggal = htmlspecialchars($data['status_tinggal'] ?? 'Tetap');
+
+    // Jika ada custom template, gunakan dan replace variabelnya
+    if ($custom_template) {
+        $html = $custom_template;
+        $html = str_replace('{nama}', $nama, $html);
+        $html = str_replace('{nik}', $nik, $html);
+        $html = str_replace('{alamat}', $alamat, $html);
+        $html = str_replace('{tanggal}', $tanggal_sekarang, $html);
+        $html = str_replace('{nama_usaha}', $nama_usaha, $html);
+        $html = str_replace('{lokasi_usaha}', $lokasi_usaha, $html);
+        $html = str_replace('{keterangan}', $keterangan, $html);
+        $html = str_replace('{status_tinggal}', $status_tinggal, $html);
+        $html = str_replace('{kepala_desa}', $kepala_desa, $html);
+        $html = str_replace('{nama_desa}', $nama_desa, $html);
+        $html = str_replace('{nama_kecamatan}', $nama_kecamatan, $html);
+        $html = str_replace('{nama_kabupaten}', $nama_kabupaten, $html);
+        return $html;
     }
 
     if ($type === 'nikah') {

@@ -36,18 +36,42 @@ if ($action && $id) {
   <meta charset="utf-8">
   <title>Admin - Pengajuan Surat</title>
   <style>
-    table{border-collapse:collapse;width:100%}
-    th,td{border:1px solid #ddd;padding:8px}
-    th{background:#f4f4f4}
-    .btn{display:inline-block;padding:6px 10px;margin-right:6px;background:#2b7de9;color:#fff;text-decoration:none;border-radius:3px}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Arial,sans-serif;background:#f5f5f5;padding:20px}
+    .container{max-width:1200px;margin:0 auto}
+    .header{background:#2b7de9;color:white;padding:20px;margin-bottom:20px;border-radius:5px}
+    .header h2{margin-bottom:10px}
+    .header p{margin-bottom:10px;opacity:0.95}
+    .toolbar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+    table{border-collapse:collapse;width:100%;background:white;border-radius:5px;overflow:hidden}
+    th,td{border:1px solid #ddd;padding:12px;text-align:left}
+    th{background:#f4f4f4;font-weight:bold}
+    tr:hover{background:#f9f9f9}
+    .btn{display:inline-block;padding:8px 12px;margin-right:6px;background:#2b7de9;color:#fff;text-decoration:none;border-radius:3px;border:none;cursor:pointer;font-size:13px}
+    .btn:hover{background:#1a5fb8}
     .btn-danger{background:#d9534f}
-    .status-pending{color:#d79b00}
-    .status-approved{color:green}
+    .btn-danger:hover{background:#c9302c}
+    .btn-secondary{background:#6c757d}
+    .btn-secondary:hover{background:#5a6268}
+    .btn-warning{background:#f0ad4e}
+    .btn-warning:hover{background:#ec971f}
+    .status-pending{color:#d79b00;font-weight:bold}
+    .status-approved{color:green;font-weight:bold}
+    .draft-container{background:#f9f9f9;padding:12px;margin-top:8px;border:1px dashed #ccc;border-radius:3px;max-height:200px;overflow-y:auto;font-size:13px}
+    .action-buttons{display:flex;gap:6px;flex-wrap:wrap}
   </style>
 </head>
 <body>
-  <h2>Daftar Pengajuan Surat</h2>
-  <p>Perangkat desa cukup <strong>memeriksa</strong> data lalu tekan <strong>Setujui</strong> atau <strong>Cetak</strong>.</p>
+  <div class="container">
+    <div class="header">
+      <h2>📋 Daftar Pengajuan Surat</h2>
+      <p>Perangkat desa bisa memeriksa data, mengedit draft, dan menyetujui pengajuan surat</p>
+    </div>
+
+    <div class="toolbar">
+      <a href="admin.php" class="btn btn-secondary">← Kembali</a>
+      <a href="admin_template_surat.php" class="btn btn-warning">⚙️ Kelola Template Surat</a>
+    </div>
 
   <table>
     <tr><th>ID</th><th>Nama</th><th>NIK</th><th>Jenis</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr>
@@ -63,17 +87,21 @@ if ($action && $id) {
         <td><?php echo htmlspecialchars($d['created_at']); ?></td>
         <td class="status-<?php echo $s['status']; ?>"><?php echo htmlspecialchars($s['status']); ?></td>
         <td>
-          <a class="btn" href="admin_surat.php?action=approve&id=<?php echo $s['id']; ?>">Setujui</a>
-          <a class="btn" href="admin_surat.php?action=print&id=<?php echo $s['id']; ?>" target="_blank">Cetak</a>
-          <a class="btn btn-danger" href="admin_surat.php?action=delete&id=<?php echo $s['id']; ?>">Hapus</a>
+          <div class="action-buttons">
+            <a class="btn" href="edit_surat_draft.php?id=<?php echo $s['id']; ?>">✏️ Edit</a>
+            <a class="btn" href="admin_surat.php?action=approve&id=<?php echo $s['id']; ?>">✓ Setujui</a>
+            <a class="btn" href="admin_surat.php?action=print&id=<?php echo $s['id']; ?>" target="_blank">🖨️ Cetak</a>
+            <a class="btn btn-danger" href="admin_surat.php?action=delete&id=<?php echo $s['id']; ?>">🗑️ Hapus</a>
+          </div>
         </td>
       </tr>
       <tr><td colspan="7">
-        <strong>Draft Surat:</strong>
-        <div style="border:1px dashed #ccc;padding:8px;margin-top:6px;background:#fff"><?php echo $s['draft']; ?></div>
+        <strong>📄 Draft Surat:</strong>
+        <div class="draft-container"><?php echo $s['draft']; ?></div>
       </td></tr>
     <?php endforeach; ?>
   </table>
+  </div>
 
 </body>
 </html>
