@@ -13,16 +13,21 @@ try {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajukan_layanan'])) {
-    // tangani input jenis surat (hanya dari daftar yang tersedia)
-    $jenis_surat = isset($_POST['jenis_surat']) ? htmlspecialchars($_POST['jenis_surat']) : '';
-    $nik = htmlspecialchars($_POST['nik']);
-    $nama_pemohon = htmlspecialchars($_POST['nama_pemohon']);
-    $no_hp = htmlspecialchars($_POST['no_hp']);
-    $keperluan = htmlspecialchars($_POST['keperluan']);
-    
-    
+    $jenis_surat = trim((string)($_POST['jenis_surat'] ?? ''));
+    $nik = trim((string)($_POST['nik'] ?? ''));
+    $nama_pemohon = trim((string)($_POST['nama_pemohon'] ?? ''));
+    $no_hp = trim((string)($_POST['no_hp'] ?? ''));
+    $keperluan = trim((string)($_POST['keperluan'] ?? ''));
+
+    // normalize newline and whitespace so values look clean in admin
+    $jenis_surat = str_replace(["\r", "\n"], '', $jenis_surat);
+    $nik = str_replace(["\r", "\n"], '', $nik);
+    $nama_pemohon = str_replace(["\r", "\n"], '', $nama_pemohon);
+    $no_hp = str_replace(["\r", "\n"], '', $no_hp);
+    $keperluan = str_replace(["\r", "\n"], '', $keperluan);
+
     $nomor_reg = 'REG/BLUTO/' . date('Ymd') . '/' . rand(100, 999);
-    
+
     try {
         $stmtInsert = $koneksi->prepare("INSERT INTO pengajuan_surat (nama_pemohon, nik, no_hp, jenis_surat, keperluan, nomor_registrasi) VALUES (:nama, :nik, :no_hp, :jenis, :keperluan, :reg)");
         $stmtInsert->execute([
@@ -33,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajukan_layanan'])) {
             ':keperluan' => $keperluan,
             ':reg' => $nomor_reg
         ]);
-        
+
         $alert_sukses = true;
         $layanan_pilihan = $jenis_surat;
     } catch (PDOException $e) {

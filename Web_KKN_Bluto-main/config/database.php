@@ -46,6 +46,20 @@ try {
     } catch (PDOException $e) {
         // Jika gagal membuat/menyisipkan, abaikan agar aplikasi tetap berjalan
     }
+
+    // Buat tabel template_surat untuk menyimpan custom template surat
+    try {
+        $koneksi->exec("CREATE TABLE IF NOT EXISTS template_surat (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tipe_surat TEXT UNIQUE NOT NULL,
+            template_html TEXT NOT NULL,
+            deskripsi TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )");
+    } catch (PDOException $e) {
+        // Jika gagal membuat tabel, abaikan agar aplikasi tetap berjalan
+    }
 } catch(PDOException $e) {
     die("Koneksi database gagal: " . $e->getMessage());
 }

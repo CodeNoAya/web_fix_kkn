@@ -172,10 +172,6 @@ try {
                     <i class="bi bi-geo-alt-fill me-1"></i> Sumenep & Sekitarnya
                 </div>
                 <div class="list-group list-group-flush">
-                    <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-                        <span class="small fw-semibold"><i class="bi bi-moon me-2 text-success"></i>Imsak</span>
-                        <span class="badge bg-dark rounded-pill fw-bold" id="prayer-imsak">--:--</span>
-                    </div>
                     <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3 bg-success bg-opacity-5">
                         <span class="small fw-semibold"><i class="bi bi-sunrise me-2 text-success"></i>Subuh</span>
                         <span class="badge bg-success rounded-pill fw-bold" id="prayer-subuh">--:--</span>
