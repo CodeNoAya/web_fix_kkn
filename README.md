@@ -28,4 +28,4 @@ Sistem Informasi Desa berbasis Web yang dirancang untuk mempermudah masyarakat d
 
 1. **Clone Repository**
    ```bash
-   git clone [https://github.com/USERNAME/REPOSITORY.git](https://github.com/CodeNoAya/web_fix_kkn.git)
+   git clone https://github.com/CodeNoAya/web_fix_kkn.git
